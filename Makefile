@@ -15,7 +15,7 @@ YACC = bison
 CFLAGS = -Wall -Wextra
 
 # Nome do executável
-EXECUTABLE = etapa3
+EXECUTABLE = etapa4
 
 # Listagem de arquivos fonte
 SOURCES = lex.yy.c parser.tab.c functions.c ast.c main.c valor_lexico.c

@@ -160,6 +160,7 @@ void exporta(void *arvore)
     nodo_arvore = (Nodo*) arvore;
     _imprime_nodo(nodo_arvore);
     _imprime_arestas(nodo_arvore);
+    imprime_arvore(nodo_arvore,1);
     return;
 }
 void concat_call(Nodo* nodo){

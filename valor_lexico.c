@@ -9,12 +9,14 @@
 #include <stdbool.h>
 #include "valor_lexico.h"
 
-meuValorLexico define_yyval(char* yytext, tipo_t tipo, int num_lines) 
+meuValorLexico define_yyval(char* yytext, tipo_t tipo, int num_lines, int tamanho_token) 
 {  
       meuValorLexico valor_lexico;
       valor_lexico.linha=num_lines;
-      valor_lexico.tipo=tipo;
+      valor_lexico.tipo=-1;
+      valor_lexico.natureza_token=tipo;
       valor_lexico.valor_token = strdup(yytext);
+      valor_lexico.tamanho_token=tamanho_token;
       return valor_lexico;
 }
 

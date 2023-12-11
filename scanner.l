@@ -59,11 +59,11 @@ literal_float [0-9]*\.[0-9]+
 ";"  { return (int) ';'; }
 
 
-true { yylval.valor_lexico = define_yyval(yytext, LITERAL, get_line_number()); return TK_LIT_TRUE;}
-false { yylval.valor_lexico = define_yyval(yytext, LITERAL, get_line_number()); return TK_LIT_FALSE;}
-{identificador} { yylval.valor_lexico = define_yyval(yytext, IDENTIFICADOR, get_line_number()); return TK_IDENTIFICADOR;}
-{literal_float} { yylval.valor_lexico = define_yyval(yytext, LITERAL, get_line_number()); return TK_LIT_FLOAT;}
-{literal_inteiro} { yylval.valor_lexico = define_yyval(yytext, LITERAL, get_line_number());  return TK_LIT_INT;}
+true { yylval.valor_lexico = define_yyval(yytext, LITERAL, get_line_number(), 1); return TK_LIT_TRUE;}
+false { yylval.valor_lexico = define_yyval(yytext, LITERAL, get_line_number(), 1); return TK_LIT_FALSE;}
+{identificador} { yylval.valor_lexico = define_yyval(yytext, IDENTIFICADOR, get_line_number(), 0); return TK_IDENTIFICADOR;}
+{literal_float} { yylval.valor_lexico = define_yyval(yytext, LITERAL, get_line_number(), 4); return TK_LIT_FLOAT;}
+{literal_inteiro} { yylval.valor_lexico = define_yyval(yytext, LITERAL, get_line_number(),4 );  return TK_LIT_INT;}
 
 \n  { increment_line_number(); }
 

@@ -134,7 +134,13 @@ tipo: TK_PR_INT {$$ = adiciona_nodo_by_label("int");}
     | TK_PR_FLOAT {$$ = adiciona_nodo_by_label("float");}
     | TK_PR_BOOL {$$ = adiciona_nodo_by_label("bool");}
 
-lista_identificadores: TK_IDENTIFICADOR { $$ = adiciona_nodo($1); }
+lista_identificadores: TK_IDENTIFICADOR { 
+    $$ = adiciona_nodo($1);
+    $1.tipo = tipo_atual;
+	$1.tamanho_token = infereTamanho(tipo_atual);
+	verificaERR_DECLARED(lista_tabelas, $1);
+	insereUltimaTabela(&lista_tabelas, $1); 
+    }
                    | lista_identificadores ',' TK_IDENTIFICADOR { 
                     adiciona_filho($$, adiciona_nodo($3));
                     }
@@ -210,8 +216,11 @@ comando: declaracao_variavel_local { $$ = NULL; }
        | chamada_funcao_init { $$ = $1; }
        ;
 
-declaracao_variavel_local: tipo lista_identificadores ';' { $$ = $2; }
-                       ;
+declaracao_variavel_local: tipo_local lista_identificadores ';' { 
+    $$ = $2; 
+}
+           
+tipo_local: tipo { tipo_atual = verificaTipo($1->valor_lexico.valor_token);}
 
 atribuicao: TK_IDENTIFICADOR '=' expressao ';' { 
     $$ = adiciona_nodo_by_label("=");
@@ -311,15 +320,20 @@ prec1: '-' prec1 { $$ = adiciona_nodo_by_label("-"); adiciona_filho($$,$2);}
     ;
 
 primario: '(' expressao ')' { $$ = $2; }
-        | TK_IDENTIFICADOR { $$ = adiciona_nodo($1); }
+        | TK_IDENTIFICADOR { 
+            $$ = adiciona_nodo($1);
+            verificaERR_UNDECLARED_FUNCTION(lista_tabelas,$1);
+            $1.tipo = obtemTipo(lista_tabelas,$1);
+	        $1.tamanho_token = infereTamanho($1.tipo);
+        }
         | literais { $$ = $1; }
         | chamada_funcao{ $$ = $1; }
         ;
 
-literais: TK_LIT_INT { $$ = adiciona_nodo($1); }
-        | TK_LIT_FLOAT { $$ = adiciona_nodo($1); }
-        | TK_LIT_FALSE { $$ = adiciona_nodo($1); }
-        | TK_LIT_TRUE { $$ = adiciona_nodo($1); }
+literais: TK_LIT_INT { $$ = adiciona_nodo($1); $1.tipo = INT; insereUltimaTabela(&lista_tabelas, $1); }
+        | TK_LIT_FLOAT { $$ = adiciona_nodo($1); $1.tipo = FLOAT; insereUltimaTabela(&lista_tabelas, $1); }
+        | TK_LIT_FALSE { $$ = adiciona_nodo($1); $1.tipo = BOOL; insereUltimaTabela(&lista_tabelas, $1);}
+        | TK_LIT_TRUE { $$ = adiciona_nodo($1); $1.tipo = BOOL; insereUltimaTabela(&lista_tabelas, $1); }
         ;
 
 %%

@@ -141,8 +141,22 @@ lista_identificadores: TK_IDENTIFICADOR {
 	verificaERR_DECLARED(lista_tabelas, $1);
 	insereUltimaTabela(&lista_tabelas, $1); 
     }
-                   | lista_identificadores ',' TK_IDENTIFICADOR { 
-                    adiciona_filho($$, adiciona_nodo($3));
+                   | TK_IDENTIFICADOR ',' lista_identificadores { 
+
+                    if($1.valor_token != NULL && $3 != NULL)
+                    {
+                        $$ = adiciona_nodo($1);
+                        adiciona_filho($$, $3);
+                    }
+
+                    else if($1.valor_token != NULL)
+                        $$ = adiciona_nodo($1);
+                        
+                    else if($3 != NULL)
+                        $$ = $3;
+                        
+                    else
+                        $$ = NULL;
                     }
                    | /* Vazio */ { $$ = NULL; };
 

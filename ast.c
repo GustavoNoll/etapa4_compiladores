@@ -24,7 +24,7 @@ Nodo *adiciona_nodo_by_label(char *label)
 {
     meuValorLexico valor_lexico;
     valor_lexico.linha = 0;
-    valor_lexico.tipo = NAO_DEFINIDO;
+    valor_lexico.natureza_token = NAO_DEFINIDO;
     valor_lexico.valor_token = strdup(label);
     if (valor_lexico.valor_token == NULL) {
         // Tratar erro de alocação de memória, se necessário
@@ -153,9 +153,6 @@ void _imprime_arestas(Nodo *nodo)
 
 void exporta(void *arvore)
 {
-    if(arvore == NULL){
-        printf("Árvore vazia\n");
-    }
     Nodo *nodo_arvore;
     nodo_arvore = (Nodo*) arvore;
     _imprime_nodo(nodo_arvore);

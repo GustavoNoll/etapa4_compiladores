@@ -13,6 +13,10 @@
     extern void yyerror (char const *s);
     extern int get_line_number (void);
     extern void *arvore;
+    extern Lista_tabelas *lista_tabelas;
+    extern Tabela *tabela_global;
+    extern Tabela *tabela_escopo;
+    extern int tipo_atual;
 %}
 %define parse.error verbose
 %code requires {
@@ -88,11 +92,17 @@
 %type<ast_no> prec7
 %type<ast_no> expressao
 %type<ast_no> literais
+%type<ast_no> tipo
 
-
+%start inicio_programa;
 %%
 
-programa: elementos { $$ = $1; arvore = $$; }
+inicio_programa: { pushTabela(&lista_tabelas, tabela_global); } programa
+
+programa: elementos { $$ = $1; arvore = $$;
+	        imprimeTodasTabelas(lista_tabelas);
+
+            popTabela(&lista_tabelas);}
         | /* Vazio */ { $$ = NULL; };
 
 elementos: elemento elementos {
@@ -120,9 +130,9 @@ declaracoes_globais: declaracao_variaveis_globais;
 
 declaracao_variaveis_globais: tipo lista_identificadores ';'
 
-tipo: TK_PR_INT
-    | TK_PR_FLOAT
-    | TK_PR_BOOL
+tipo: TK_PR_INT {$$ = adiciona_nodo_by_label("int");}
+    | TK_PR_FLOAT {$$ = adiciona_nodo_by_label("float");}
+    | TK_PR_BOOL {$$ = adiciona_nodo_by_label("bool");}
 
 lista_identificadores: TK_IDENTIFICADOR { $$ = adiciona_nodo($1); }
                    | lista_identificadores ',' TK_IDENTIFICADOR { 
@@ -138,11 +148,22 @@ definicao_funcao: cabecalho_funcao corpo_funcao {
 }
                ;
 
-cabecalho_funcao: parametros TK_OC_GE tipo '!' TK_IDENTIFICADOR { $$ = adiciona_nodo($5); }
+cabecalho_funcao: parametros TK_OC_GE tipo '!' TK_IDENTIFICADOR { 
+    $$ = adiciona_nodo($5);
+    tipo_atual = verificaTipo($3->valor_lexico.valor_token);
+	$5.tipo = tipo_atual;
+	$5.natureza_token = FUNCAO;
+	$5.tamanho_token = infereTamanho(tipo_atual);
+
+    verificaERR_DECLARED(lista_tabelas,$5);
+	insereEntradaTabela(&(lista_tabelas->tabela_simbolos), $5);
+    }
                | tipo '!' TK_IDENTIFICADOR TK_OC_GE tipo '!' TK_IDENTIFICADOR { $$ = adiciona_nodo($7); }
                ;
 
-parametros: '(' lista_parametros ')';
+parametros: '(' push_tabela_escopo lista_parametros ')';
+
+push_tabela_escopo: /* Vazio */ { pushTabela(&lista_tabelas, tabela_escopo); }
 
 lista_parametros: parametro
                | lista_parametros ',' parametro
@@ -150,6 +171,15 @@ lista_parametros: parametro
                ;
 
 parametro: tipo TK_IDENTIFICADOR
+{
+    tipo_atual = verificaTipo($1->valor_lexico.valor_token);
+    $2.tipo = tipo_atual;
+    $2.natureza_token = IDENTIFICADOR;
+	$2.tamanho_token = infereTamanho(tipo_atual);
+    verificaERR_DECLARED(lista_tabelas,$2);
+	insereUltimaTabela(&lista_tabelas, $2);
+
+}
          ;
 
 corpo_funcao: bloco_comandos { $$ = $1; };

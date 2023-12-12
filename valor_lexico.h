@@ -4,37 +4,27 @@
  * - Gustavo Lopes Noll (322864)
 */
 #pragma once
-typedef enum tipo
+typedef enum nat_tipo
 {
     IDENTIFICADOR,
     LITERAL,
     FUNCAO,
     NAO_DEFINIDO
-} tipo_t;
+} nat_tipo;
 
-/* Constantes para definir a natureza de um nodo da AST, ou de um identificador da linguagem. */
-#define LITERAL 0
-#define VARIABLE 1
-#define EXPRESSION_OPERATOR 2
-#define LANGUAGE_OPERATOR 3
-#define CONTROL 4
-#define TYPE 5
-#define SYNTAX_TOKEN 6
-#define FUNCTION_CALL 7
-#define FUNCTION 8
-
-
-/* Constantes para associar um valor inteiro a cada um dos tres tipos de dados da linguagem. */
-#define INT 0
-#define FLOAT 1
-#define BOOL 2
+typedef enum tipo
+{
+    INT,
+    FLOAT,
+    BOOL,
+} tipo;
 
 typedef struct valorLexico
 {
     int linha;
-    tipo_t tipo;
+    tipo tipo;
     char *valor_token;
-    int natureza_token;
+    nat_tipo natureza_token;
     int tamanho_token;
 } meuValorLexico;
 
@@ -53,5 +43,5 @@ typedef struct lista_tabelas
 
 } Lista_tabelas;
 
-meuValorLexico define_yyval(char* yytext, tipo_t tipo, int num_lines, int tamanho_token);
+meuValorLexico define_yyval(char* yytext, nat_tipo tipo, int num_lines, int tamanho_token);
 void libera_vl(meuValorLexico valor_lexico);

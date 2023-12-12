@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include "valor_lexico.h"
 
-meuValorLexico define_yyval(char* yytext, tipo_t tipo, int num_lines, int tamanho_token) 
+meuValorLexico define_yyval(char* yytext, nat_tipo tipo, int num_lines, int tamanho_token) 
 {  
       meuValorLexico valor_lexico;
       valor_lexico.linha=num_lines;

@@ -1,3 +1,7 @@
-(int x) >= int! funcao {
+(int x) >= float! funcao {
+    if (x == 1) {}; while (a == b) {};
+}
+
+(int y) >= float! funcao2 {
     if (x == 1) {}; while (a == b) {};
 }

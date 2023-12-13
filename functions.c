@@ -199,7 +199,7 @@ void verificaERR_UNDECLARED_FUNCTION(Lista_tabelas *lista_tabelas, meuValorLexic
 }
 
 /* Verifica os seguintes erros de semantica, nos casos de uma chama de funcao no codigo sendo analisado:
-ERR_VARIABLE   - Caso o identificador dito como variavel esteja sendo usado como funcao.
+ERR_VARIABLE   - Caso o identificador dito variável seja usado como uma função,deve-se lançar o erro ERR_VARIABLE
 ERR_UNDECLARED - Caso o identificador não tenha sido declarado no seu uso; */
 void verificaERR_VARIABLE_UNDECLARED_chamadafuncao(Lista_tabelas *lista_tabelas, char *valor_token, int linha)
 {

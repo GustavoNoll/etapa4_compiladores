@@ -7,7 +7,6 @@ int a;
 (int y) >= float! funcao2 {
     int b,c;
     float x;
-    b = x;
     if (y == 1) {}; while (a == b) {};
     funcao();
 }

@@ -82,6 +82,8 @@
 %type<ast_no> argumentos
 %type<ast_no> chamada_funcao
 %type<ast_no> lista_identificadores
+%type<ast_no> lista_identificadores_globais
+%type<ast_no> identificador_local
 %type<ast_no> primario
 %type<ast_no> prec1
 %type<ast_no> prec2
@@ -97,12 +99,10 @@
 %start inicio_programa;
 %%
 
-inicio_programa: { pushTabela(&lista_tabelas, tabela_global); } programa
+inicio_programa: { pushTabela(&lista_tabelas, tabela_global); } programa { popTabela(&lista_tabelas);}
 
 programa: elementos { $$ = $1; arvore = $$;
-	        imprimeTodasTabelas(lista_tabelas);
-
-            popTabela(&lista_tabelas);}
+	        imprimeTodasTabelas(lista_tabelas);} 
         | /* Vazio */ { $$ = NULL; };
 
 elementos: elemento elementos {
@@ -128,42 +128,41 @@ elemento: declaracoes_globais { $$ = NULL; }
 
 declaracoes_globais: declaracao_variaveis_globais;
 
-declaracao_variaveis_globais: tipo lista_identificadores ';'
+declaracao_variaveis_globais: tipo { tipo_atual = verificaTipo($1->valor_lexico.valor_token); } lista_identificadores_globais ';'
 
 tipo: TK_PR_INT {$$ = adiciona_nodo_by_label("int");}
     | TK_PR_FLOAT {$$ = adiciona_nodo_by_label("float");}
     | TK_PR_BOOL {$$ = adiciona_nodo_by_label("bool");}
 
-lista_identificadores: TK_IDENTIFICADOR { 
-    $$ = adiciona_nodo($1);
+lista_identificadores: identificador_local {$$ = NULL;}
+                   | identificador_local ',' lista_identificadores {$$ = NULL;}
+                   | /* Vazio */ { $$ = NULL; };
+
+lista_identificadores_globais: TK_IDENTIFICADOR ',' lista_identificadores_globais
+                             { 
+                                 $1.tipo = tipo_atual; 
+                                 $1.tamanho_token = infereTamanho(tipo_atual); 
+                                 verificaERR_DECLARED(lista_tabelas, $1); 
+                                 insereEntradaTabela(&(lista_tabelas->tabela_simbolos), $1);
+                             }
+                           | TK_IDENTIFICADOR
+                             { 
+                                 $1.tipo = tipo_atual; 
+                                 $1.tamanho_token = infereTamanho(tipo_atual); 
+                                 verificaERR_DECLARED(lista_tabelas, $1); 
+                                 insereEntradaTabela(&(lista_tabelas->tabela_simbolos), $1);
+                             };
+
+identificador_local: TK_IDENTIFICADOR {
     $1.tipo = tipo_atual;
 	$1.tamanho_token = infereTamanho(tipo_atual);
 	verificaERR_DECLARED(lista_tabelas, $1);
-	insereUltimaTabela(&lista_tabelas, $1); 
-    }
-                   | TK_IDENTIFICADOR ',' lista_identificadores { 
-
-                    if($1.valor_token != NULL && $3 != NULL)
-                    {
-                        $$ = adiciona_nodo($1);
-                        adiciona_filho($$, $3);
-                    }
-
-                    else if($1.valor_token != NULL)
-                        $$ = adiciona_nodo($1);
-                        
-                    else if($3 != NULL)
-                        $$ = $3;
-                        
-                    else
-                        $$ = NULL;
-                    }
-                   | /* Vazio */ { $$ = NULL; };
-
-definicao_funcao: cabecalho_funcao corpo_funcao { 
-    $$ = $1;
-    if($2 != NULL){
-        adiciona_filho($1, $2);
+    insereUltimaTabela(&lista_tabelas, $1);
+}
+definicao_funcao: push_tabela_escopo cabecalho_funcao corpo_funcao pop_tabela_escopo { 
+    $$ = $2;
+    if($3 != NULL){
+        adiciona_filho($2, $3);
     }
 }
                ;
@@ -181,12 +180,13 @@ cabecalho_funcao: parametros TK_OC_GE tipo '!' TK_IDENTIFICADOR {
                | tipo '!' TK_IDENTIFICADOR TK_OC_GE tipo '!' TK_IDENTIFICADOR { $$ = adiciona_nodo($7); }
                ;
 
-parametros: '(' push_tabela_escopo lista_parametros ')';
+parametros: '(' lista_parametros ')';
 
 push_tabela_escopo: /* Vazio */ { pushTabela(&lista_tabelas, tabela_escopo); }
+pop_tabela_escopo: /* Vazio */ { popTabela(&lista_tabelas); }
 
 lista_parametros: parametro
-               | lista_parametros ',' parametro
+               | parametro ',' lista_parametros
                | /* Vazio */
                ;
 
@@ -202,7 +202,7 @@ parametro: tipo TK_IDENTIFICADOR
 }
          ;
 
-corpo_funcao: bloco_comandos { $$ = $1; };
+corpo_funcao: push_tabela_escopo bloco_comandos pop_tabela_escopo { $$ = $2; };
 
 comandos: comando { $$ = $1; }
         | comando comandos { 
@@ -241,6 +241,10 @@ atribuicao: TK_IDENTIFICADOR '=' expressao ';' {
     Nodo *novo_id = adiciona_nodo($1);
     adiciona_filho($$, novo_id);
     adiciona_filho($$, $3);
+
+    $1.tipo = infereTipoExpressao($$); 
+	$1.tamanho_token = infereTamanho($1.tipo);
+	verificaERR_UNDECLARED_FUNCTION(lista_tabelas,$1);
     }
     ;
 
@@ -275,13 +279,15 @@ repeticao: TK_PR_WHILE '(' expressao ')' bloco_comandos ';'{
 retorno: TK_PR_RETURN expressao ';' { $$ = adiciona_filho(adiciona_nodo_by_label("return"), $2); }
        ;
 
-bloco_comandos: '{' comandos '}'{ $$ = $2; }
+bloco_comandos: '{'  comandos  '}'{ $$ = $2; }
              | '{' '}'{ $$ = NULL;}
 
-chamada_funcao_init: TK_IDENTIFICADOR '(' argumentos ')' ';' { 
+chamada_funcao_init: TK_IDENTIFICADOR '(' argumentos ')' ';' {
+            $1.natureza_token = FUNCAO;
             $$ = adiciona_nodo($1);
             concat_call($$);
             adiciona_filho($$, $3);
+            verificaERR_VARIABLE_UNDECLARED_chamadafuncao(lista_tabelas, obtemNomeFuncao($$->valor_lexico.valor_token), $1.linha);
     };
 
 chamada_funcao: TK_IDENTIFICADOR '(' argumentos ')' {

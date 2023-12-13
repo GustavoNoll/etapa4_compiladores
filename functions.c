@@ -213,11 +213,13 @@ void verificaERR_VARIABLE_UNDECLARED_chamadafuncao(Lista_tabelas *lista_tabelas,
 		{
 		    if (strcmp(valor_token, tabela_atual->info->valor_token) == 0)
 		    {
-		   	if (tabela_atual->info->natureza_token != FUNCAO)
-		   	{
-		   		printf("ERRO DE SEMANTICA - LINHA %d - VARIAVEL '%s' SENDO USADA COMO FUNCAO\n", linha, valor_token);
-		   		exit(ERR_VARIABLE);
-		   	}     	
+                if (tabela_atual->info->natureza_token != FUNCAO)
+                {
+                    printf("ERRO DE SEMANTICA - LINHA %d - VARIAVEL '%s' SENDO USADA COMO FUNCAO\n", linha, valor_token);
+                    exit(ERR_VARIABLE);
+                }else {
+                    return;
+                }     	
 		    }
 		        
 		    tabela_atual = tabela_atual->proximo;
@@ -227,35 +229,50 @@ void verificaERR_VARIABLE_UNDECLARED_chamadafuncao(Lista_tabelas *lista_tabelas,
     	}
     
 	printf("ERRO DE SEMANTICA - LINHA %d - IDENTIFICADOR '%s' NAO DECLARADO\n", linha, valor_token);
-	exit(ERR_UNDECLARED);	
+	exit(ERR_UNDECLARED);
 }
 
 /* Verifica o seguinte erro de semantica:
 ERR_DECLARED - Nos casos em que um identificador ja declarado esteja sendo redeclarado. */
-void verificaERR_DECLARED(Lista_tabelas *lista_tabelas, meuValorLexico identificador)
-{
-	Lista_tabelas *lista_atual = lista_tabelas;
-	
-	if (identificador.natureza_token != FUNCAO)
-		while (lista_atual->proximo != NULL)
-			lista_atual = lista_atual->proximo;
+void verificaERR_DECLARED(Lista_tabelas *lista_tabelas, meuValorLexico identificador) {
+    Lista_tabelas *lista_atual = lista_tabelas;
 
-	Tabela *tabela_atual;
-	tabela_atual = lista_atual->tabela_simbolos;
+    // Verificações globais (fora de funções)
+    while (lista_atual != NULL && lista_atual->proximo != NULL) {
+        lista_atual = lista_atual->proximo;
+    }
 
-	while (tabela_atual != NULL)
-	{
+    if (lista_atual != NULL) {
+        Tabela *tabela_atual = lista_atual->tabela_simbolos;
 
-		if (strcmp(identificador.valor_token, tabela_atual->info->valor_token) == 0)
-		{
-			printf("ERRO DE SEMANTICA - LINHA %d - REDECLARACAO DO IDENTIFICADOR '%s'\n", identificador.linha, identificador.valor_token);
-			exit(ERR_DECLARED);
-		}
+        while (tabela_atual != NULL) {
+            if (strcmp(identificador.valor_token, tabela_atual->info->valor_token) == 0) {
+                printf("ERRO DE SEMANTICA - LINHA %d - REDECLARACAO DO IDENTIFICADOR '%s'\n", identificador.linha, identificador.valor_token);
+                exit(ERR_DECLARED);
+            }
 
-		tabela_atual = tabela_atual->proximo;
-	}
+            tabela_atual = tabela_atual->proximo;
+        }
+    }
 
-	return;
+    // Verificações locais (dentro de funções)
+    lista_atual = lista_tabelas;
+    
+    while (lista_atual != NULL) {
+        Tabela *tabela_atual = lista_atual->tabela_simbolos;
+
+        while (tabela_atual != NULL) {
+            if (identificador.natureza_token != FUNCAO &&
+                strcmp(identificador.valor_token, tabela_atual->info->valor_token) == 0) {
+                printf("ERRO DE SEMANTICA - LINHA %d - REDECLARACAO DO IDENTIFICADOR '%s'\n", identificador.linha, identificador.valor_token);
+                exit(ERR_DECLARED);
+            }
+
+            tabela_atual = tabela_atual->proximo;
+        }
+
+        lista_atual = lista_atual->proximo;
+    }
 }
 
 /* Recebe um valor inteiro referente a um tipo, e retorna uma string indicando o tipo. */

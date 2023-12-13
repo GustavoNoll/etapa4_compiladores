@@ -159,7 +159,7 @@ void destroiListaTabelas(Lista_tabelas** lista_tabelas)
 /* Verifica os seguintes erros de semantica:
 ERR_UNDECLARED - Caso o identificador não tenha sido declarado no seu uso;
 ERR_FUNCTION   - Caso o identificador dito como funcao esteja sendo usado como variavel. */
-void verificaERR_UNDECLARED_FUNCTION(Lista_tabelas *lista_tabelas, meuValorLexico identificador)
+void verifica_funcao(Lista_tabelas *lista_tabelas, meuValorLexico identificador)
 {
     Lista_tabelas *lista_atual = lista_tabelas;
     int achou_funcao = 0;
@@ -201,7 +201,7 @@ void verificaERR_UNDECLARED_FUNCTION(Lista_tabelas *lista_tabelas, meuValorLexic
 /* Verifica os seguintes erros de semantica, nos casos de uma chama de funcao no codigo sendo analisado:
 ERR_VARIABLE   - Caso o identificador dito variável seja usado como uma função,deve-se lançar o erro ERR_VARIABLE
 ERR_UNDECLARED - Caso o identificador não tenha sido declarado no seu uso; */
-void verificaERR_VARIABLE_UNDECLARED_chamadafuncao(Lista_tabelas *lista_tabelas, char *valor_token, int linha)
+void verifica_variavel(Lista_tabelas *lista_tabelas, char *valor_token, int linha)
 {
 	Lista_tabelas *lista_atual = lista_tabelas;
 
@@ -234,7 +234,7 @@ void verificaERR_VARIABLE_UNDECLARED_chamadafuncao(Lista_tabelas *lista_tabelas,
 
 /* Verifica o seguinte erro de semantica:
 ERR_DECLARED - Nos casos em que um identificador ja declarado esteja sendo redeclarado. */
-void verificaERR_DECLARED(Lista_tabelas *lista_tabelas, meuValorLexico identificador) {
+void verifica_redeclaracao(Lista_tabelas *lista_tabelas, meuValorLexico identificador) {
     Lista_tabelas *lista_atual = lista_tabelas;
 
     // Verificações globais (fora de funções)
@@ -275,7 +275,6 @@ void verificaERR_DECLARED(Lista_tabelas *lista_tabelas, meuValorLexico identific
     }
 }
 
-/* Recebe um valor inteiro referente a um tipo, e retorna uma string indicando o tipo. */
 char* obtemNomeTipo (int valor_tipo)
 {
 	char* nome_tipo = calloc(6, sizeof(char));
@@ -288,7 +287,6 @@ char* obtemNomeTipo (int valor_tipo)
 	return nome_tipo;
 }
 
-/* Recebe uma string qualificando uma chamada de funcao com "call " concatenado, e obtem o nome da funcao sendo chamada. */
 char* obtemNomeFuncao(char* nomeChamadaFuncao)
 {
 	char *nomeFuncao = calloc(50,sizeof(char));
@@ -312,18 +310,7 @@ void imprimeTabela(Tabela *tabela)
 	}
 }
 
-/* Recebe uma lista de tabelas de simbolos, e imprime a ultima tabela inserida na lista. */
-void imprimeUltimaTabela(Lista_tabelas *lista_tabelas)
-{
-	Lista_tabelas *atual = lista_tabelas;
-    	while (atual->proximo != NULL)
-        	atual = atual->proximo;
-	printf("TABELA LOCAL:\n\n");
-        imprimeTabela(atual->tabela_simbolos);
-	printf("------------------\n");
-}
-
-void imprimeTodasTabelas(Lista_tabelas *lista_tabelas)
+void imprimeTabelas(Lista_tabelas *lista_tabelas)
 {
     Lista_tabelas *atual = lista_tabelas;
     while (atual != NULL){

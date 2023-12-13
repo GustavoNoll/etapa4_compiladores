@@ -101,8 +101,7 @@
 
 inicio_programa: { pushTabela(&lista_tabelas, tabela_global); } programa { popTabela(&lista_tabelas);}
 
-programa: elementos { $$ = $1; arvore = $$;
-	        imprimeTodasTabelas(lista_tabelas);} 
+programa: elementos { $$ = $1; arvore = $$;} 
         | /* Vazio */ { $$ = NULL; };
 
 elementos: elemento elementos {
@@ -142,21 +141,21 @@ lista_identificadores_globais: TK_IDENTIFICADOR ',' lista_identificadores_globai
                              { 
                                  $1.tipo = tipo_atual; 
                                  $1.tamanho_token = infereTamanho(tipo_atual); 
-                                 verificaERR_DECLARED(lista_tabelas, $1); 
+                                 verifica_redeclaracao(lista_tabelas, $1); 
                                  insereEntradaTabela(&(lista_tabelas->tabela_simbolos), $1);
                              }
                            | TK_IDENTIFICADOR
                              { 
                                  $1.tipo = tipo_atual; 
                                  $1.tamanho_token = infereTamanho(tipo_atual); 
-                                 verificaERR_DECLARED(lista_tabelas, $1); 
+                                 verifica_redeclaracao(lista_tabelas, $1); 
                                  insereEntradaTabela(&(lista_tabelas->tabela_simbolos), $1);
                              };
 
 identificador_local: TK_IDENTIFICADOR {
     $1.tipo = tipo_atual;
 	$1.tamanho_token = infereTamanho(tipo_atual);
-	verificaERR_DECLARED(lista_tabelas, $1);
+	verifica_redeclaracao(lista_tabelas, $1);
     insereUltimaTabela(&lista_tabelas, $1);
 }
 definicao_funcao: push_tabela_escopo cabecalho_funcao corpo_funcao pop_tabela_escopo { 
@@ -174,7 +173,7 @@ cabecalho_funcao: parametros TK_OC_GE tipo '!' TK_IDENTIFICADOR {
 	$5.natureza_token = FUNCAO;
 	$5.tamanho_token = infereTamanho(tipo_atual);
 
-    verificaERR_DECLARED(lista_tabelas,$5);
+    verifica_redeclaracao(lista_tabelas,$5);
 	insereEntradaTabela(&(lista_tabelas->tabela_simbolos), $5);
     }
                | tipo '!' TK_IDENTIFICADOR TK_OC_GE tipo '!' TK_IDENTIFICADOR { $$ = adiciona_nodo($7); }
@@ -196,7 +195,7 @@ parametro: tipo TK_IDENTIFICADOR
     $2.tipo = tipo_atual;
     $2.natureza_token = IDENTIFICADOR;
 	$2.tamanho_token = infereTamanho(tipo_atual);
-    verificaERR_DECLARED(lista_tabelas,$2);
+    verifica_redeclaracao(lista_tabelas,$2);
 	insereUltimaTabela(&lista_tabelas, $2);
 
 }
@@ -244,7 +243,7 @@ atribuicao: TK_IDENTIFICADOR '=' expressao ';' {
 
     $1.tipo = infereTipoExpressao($$); 
 	$1.tamanho_token = infereTamanho($1.tipo);
-	verificaERR_UNDECLARED_FUNCTION(lista_tabelas,$1);
+	verifica_funcao(lista_tabelas,$1);
     }
     ;
 
@@ -287,7 +286,7 @@ chamada_funcao_init: TK_IDENTIFICADOR '(' argumentos ')' ';' {
             $$ = adiciona_nodo($1);
             concat_call($$);
             adiciona_filho($$, $3);
-            verificaERR_VARIABLE_UNDECLARED_chamadafuncao(lista_tabelas, obtemNomeFuncao($$->valor_lexico.valor_token), $1.linha);
+            verifica_variavel(lista_tabelas, obtemNomeFuncao($$->valor_lexico.valor_token), $1.linha);
     };
 
 chamada_funcao: TK_IDENTIFICADOR '(' argumentos ')' {
@@ -342,7 +341,7 @@ prec1: '-' prec1 { $$ = adiciona_nodo_by_label("-"); adiciona_filho($$,$2);}
 primario: '(' expressao ')' { $$ = $2; }
         | TK_IDENTIFICADOR { 
             $$ = adiciona_nodo($1);
-            verificaERR_UNDECLARED_FUNCTION(lista_tabelas,$1);
+            verifica_funcao(lista_tabelas,$1);
             $1.tipo = obtemTipo(lista_tabelas,$1);
 	        $1.tamanho_token = infereTamanho($1.tipo);
         }

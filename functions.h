@@ -24,11 +24,11 @@ void destroiTabela(Tabela** tabela);
 void destroiListaTabelas(Lista_tabelas** lista_tabelas);
 void imprimeTabela(Tabela *tabela);
 void imprimeUltimaTabela(Lista_tabelas* lista_tabelas);
-void imprimeTodasTabelas(Lista_tabelas *lista_tabelas);
+void imprimeTabelas(Lista_tabelas *lista_tabelas);
 
-void verificaERR_UNDECLARED_FUNCTION(Lista_tabelas *lista_tabelas, meuValorLexico identificador);
-void verificaERR_DECLARED(Lista_tabelas *lista_tabelas, meuValorLexico identificador);
-void verificaERR_VARIABLE_UNDECLARED_chamadafuncao(Lista_tabelas *lista_tabelas, char *valor_token, int linha_token);
+void verifica_funcao(Lista_tabelas *lista_tabelas, meuValorLexico identificador);
+void verifica_redeclaracao(Lista_tabelas *lista_tabelas, meuValorLexico identificador);
+void verifica_variavel(Lista_tabelas *lista_tabelas, char *valor_token, int linha_token);
 int infereTipo(int tipo1, int tipo2);
 int verificaTipo(char *tipo_token);
 int infereTipoExpressao(Nodo *raiz);
